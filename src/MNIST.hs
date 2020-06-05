@@ -1,36 +1,45 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module Main where
+module MNIST
+  ( images,
+    labels,
+    load,
+  )
+where
 
 import Control.Monad
 import Data.Binary.Get
 import qualified Data.ByteString.Lazy as BL
+
+type Label = Int
+
+type Pixel = Int
 
 data Images
   = Images
       { _numImages :: Int,
         _numRows :: Int,
         _numCols :: Int,
-        _pixels :: [Int]
+        _pixels :: [Pixel]
       }
 
 data Labels
   = Labels
       { _numLabels :: Int,
-        _labels :: [Int]
+        _labels :: [Label]
       }
 
 instance Show Images where
   show Images {..} =
     show _numImages
-      <> " images with size ("
-      <> show _numRows
-      <> ","
-      <> show _numCols
-      <> ")"
+      ++ " images with size ("
+      ++ show _numRows
+      ++ ","
+      ++ show _numCols
+      ++ ")"
 
 instance Show Labels where
-  show Labels {..} = show _numLabels <> " labels"
+  show Labels {..} = show _numLabels ++ " labels"
 
 images :: Get Images
 images = do
@@ -49,10 +58,5 @@ labels = do
   ls <- replicateM nl (fromIntegral <$> getWord8)
   return $ Labels nl ls
 
-main :: IO ()
-main = do
-  load images (dataDir ++ "train-images") >>= print
-  load labels (dataDir ++ "train-labels") >>= print
-  where
-    load f path = runGet f <$> BL.readFile path
-    dataDir = "data/result/"
+load :: Get a -> FilePath -> IO a
+load f path = runGet f <$> BL.readFile path
