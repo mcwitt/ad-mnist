@@ -1,7 +1,15 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module MNIST
-  ( images,
+  ( Images (Images),
+    ImageLabels (ImageLabels),
+    _numImages,
+    _numRows,
+    _numCols,
+    _pixels,
+    _numLabels,
+    _labels,
+    images,
     labels,
     load,
   )
@@ -23,8 +31,8 @@ data Images
         _pixels :: [Pixel]
       }
 
-data Labels
-  = Labels
+data ImageLabels
+  = ImageLabels
       { _numLabels :: Int,
         _labels :: [Label]
       }
@@ -38,8 +46,8 @@ instance Show Images where
       ++ show _numCols
       ++ ")"
 
-instance Show Labels where
-  show Labels {..} = show _numLabels ++ " labels"
+instance Show ImageLabels where
+  show ImageLabels {..} = show _numLabels ++ " labels"
 
 images :: Get Images
 images = do
@@ -51,12 +59,12 @@ images = do
   ps <- replicateM numPixels (fromIntegral <$> getWord8)
   return $ Images ni nr nc ps
 
-labels :: Get Labels
+labels :: Get ImageLabels
 labels = do
   _ <- getInt32be
   nl <- fromIntegral <$> getInt32be
   ls <- replicateM nl (fromIntegral <$> getWord8)
-  return $ Labels nl ls
+  return $ ImageLabels nl ls
 
 load :: Get a -> FilePath -> IO a
 load f path = runGet f <$> BL.readFile path
