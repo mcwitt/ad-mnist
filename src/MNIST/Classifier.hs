@@ -29,8 +29,8 @@ data Classifier n h1 k
         b2 :: R k
       }
 
-initial :: (MonadRandom m, KnownNat n, KnownNat h1, KnownNat k) => m (Classifier n h1 k)
-initial = Classifier <$> w1 <*> b1 <*> w2 <*> b2
+initRandom :: (MonadRandom m, KnownNat n, KnownNat h1, KnownNat k) => m (Classifier n h1 k)
+initRandom = Classifier <$> w1 <*> b1 <*> w2 <*> b2
   where
     w1 = rand_ xavier
     b1 = rand_ gaussian
@@ -40,6 +40,21 @@ initial = Classifier <$> w1 <*> b1 <*> w2 <*> b2
     rand_ f = do
       s :: Int <- getRandom
       return (f s)
+
+initOnes :: (KnownNat n, KnownNat h1, KnownNat k) => Classifier n h1 k
+initOnes =
+  Classifier
+    { w1 = matOnes,
+      b1 = vecOnes,
+      w2 = matOnes,
+      b2 = vecOnes
+    }
+
+matOnes :: forall m n. (KnownNat m, KnownNat n) => L m n
+matOnes = build (const (const 1))
+
+vecOnes :: forall n. KnownNat n => R n
+vecOnes = let l = fromIntegral (natVal (Proxy :: Proxy n)) in vector (replicate l 1)
 
 xavier :: forall n1 n2. (KnownNat n1, KnownNat n2) => Seed -> L n1 n2
 xavier s = uniformSample s (- c) c
