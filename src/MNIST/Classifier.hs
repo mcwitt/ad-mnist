@@ -82,7 +82,7 @@ forward Classifier {..} xs =
 
 -- | Matrix-vector sum broadcasting over the first index
 (+~) :: (KnownNat m, KnownNat n) => L m n -> R n -> L m n
-w +~ b = w + vector [1 ..] `outer` b
+w +~ b = w + vecOnes `outer` b
 
 classifier ::
   (KnownNat m, KnownNat n, KnownNat p) =>
