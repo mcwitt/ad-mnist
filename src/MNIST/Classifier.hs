@@ -16,7 +16,7 @@ import Prelude hiding ((<>))
 
 -- | Feature matrix. Number of examples (m) by number of features (n)
 data Examples :: * where
-  MkExamples :: L m n -> Examples
+  MkExamples :: (KnownNat m, KnownNat n) => L m n -> Examples
 
 type Labels m = R m
 
