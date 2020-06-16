@@ -6,19 +6,17 @@
 
 module MNIST.Classifier where
 
+import Control.Monad.Random
+import Data.Proxy
 import Data.Singletons
-import Data.Singletons.Prelude.Tuple
 import Data.Singletons.TypeLits
-import GHC.TypeLits
 import MNIST
 import Numeric.LinearAlgebra.Static
 import Prelude hiding ((<>))
 
 -- | Feature matrix. Number of examples (m) by number of features (n)
 data Examples :: * where
-  MkExamples :: Features m n -> Examples
-
-type Features m n = L m n
+  MkExamples :: L m n -> Examples
 
 type Labels m = R m
 
@@ -31,19 +29,32 @@ data Classifier n h1 k
         b2 :: R k
       }
 
-initial :: (KnownNat n, KnownNat h1, KnownNat k) => Classifier n h1 k
-initial =
-  Classifier
-    { w1 = matrix [1 ..],
-      b1 = vector [1 ..],
-      w2 = matrix [1 ..],
-      b2 = vector [1 ..]
-    }
+initial :: (MonadRandom m, KnownNat n, KnownNat h1, KnownNat k) => m (Classifier n h1 k)
+initial = Classifier <$> w1 <*> b1 <*> w2 <*> b2
+  where
+    w1 = rand_ xavier
+    b1 = rand_ gaussian
+    w2 = rand_ xavier
+    b2 = rand_ gaussian
+    rand_ :: MonadRandom m => (Seed -> a) -> m a
+    rand_ f = do
+      s :: Int <- getRandom
+      return (f s)
+
+xavier :: forall n1 n2. (KnownNat n1, KnownNat n2) => Seed -> L n1 n2
+xavier s = uniformSample s (- c) c
+  where
+    c = sqrt (6 / (n1_ + n2_))
+    n1_ = fromIntegral . natVal $ (Proxy :: Proxy n1)
+    n2_ = fromIntegral . natVal $ (Proxy :: Proxy n2)
+
+gaussian :: forall n. KnownNat n => Seed -> R n
+gaussian s = randomVector s Gaussian
 
 forward ::
   (KnownNat m, KnownNat n, KnownNat h1, KnownNat k) =>
   Classifier n h1 k ->
-  Features m n ->
+  L m n ->
   L m k
 forward Classifier {..} xs =
   let a1 = dmmap relu $ xs <> w1 +~ b1
@@ -61,13 +72,13 @@ w +~ b = w + vector [1 ..] `outer` b
 classifier ::
   (KnownNat m, KnownNat n, KnownNat p) =>
   -- | training examples
-  Features m n ->
+  L m n ->
   -- | training labels
-  Labels n ->
+  R n ->
   -- | prediction examples
-  Features p n ->
+  L p n ->
   -- | prediction labels
-  Labels p
+  R p
 classifier = undefined
 
 fromImages :: Images -> Examples

@@ -12,12 +12,13 @@ library
   exposed-modules:  MNIST
                     MNIST.Classifier
   hs-source-dirs:   src
-  build-depends:    base       >= 4.13 && < 4.14
-                  , ad         >= 4.4 && < 4.5
-                  , binary     >= 0.8.7 && < 0.9
-                  , bytestring >= 0.10.10 && < 0.11
-                  , hmatrix    >= 0.20.0 && < 0.21
-                  , singletons
+  build-depends:    base        >= 4.13 && < 4.14
+                  , MonadRandom >= 0.5.1 && < 0.6
+                  , ad          >= 4.4 && < 4.5
+                  , binary      >= 0.8.7 && < 0.9
+                  , bytestring  >= 0.10.10 && < 0.11
+                  , hmatrix     >= 0.20.0 && < 0.21
+                  , singletons  >= 2.6 && < 2.7
   default-language: Haskell2010
   ghc-options:      -Wall -Wincomplete-record-updates
 
@@ -27,3 +28,13 @@ executable ad-mnist
   build-depends:    base >= 4.13 && < 4.14, ad-mnist, bytestring >= 0.10.10 && < 0.11
   default-language: Haskell2010
   ghc-options:      -Wall -Wincomplete-record-updates
+
+test-suite ad-mnist-test
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  hs-source-dirs: test
+  build-depends:  base       >= 4.13 && < 4.14
+                , ad-mnist
+                , hmatrix    >= 0.20.0 && < 0.21
+                , hspec
+  ghc-options:    -Wall -Wincomplete-record-updates
