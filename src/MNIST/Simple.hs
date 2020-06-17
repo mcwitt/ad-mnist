@@ -4,7 +4,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module MNIST.Classifier where
+module MNIST.Simple where
 
 import Control.Monad.Random
 import Data.Proxy
@@ -20,30 +20,30 @@ data Examples :: * where
 
 type Labels m = R m
 
-data Classifier n h1 k
-  = -- | Classifier using 'n' features with 'h1' hidden units and 'k' outputs
-    Classifier
+data Parameters n h1 k
+  = -- | Fully-connected network with 'n' features, 'h1' hidden units, and 'k' outputs
+    Parameters
       { w1 :: L n h1,
         b1 :: R h1,
         w2 :: L h1 k,
         b2 :: R k
       }
 
-initRandom :: (MonadRandom m, KnownNat n, KnownNat h1, KnownNat k) => m (Classifier n h1 k)
-initRandom = Classifier <$> w1 <*> b1 <*> w2 <*> b2
+initRandom :: (MonadRandom m, KnownNat n, KnownNat h1, KnownNat k) => m (Parameters n h1 k)
+initRandom = Parameters <$> w1 <*> b1 <*> w2 <*> b2
   where
-    w1 = rand_ xavier
-    b1 = rand_ gaussian
-    w2 = rand_ xavier
-    b2 = rand_ gaussian
-    rand_ :: MonadRandom m => (Seed -> a) -> m a
-    rand_ f = do
+    w1 = rr xavier
+    b1 = rr gaussian
+    w2 = rr xavier
+    b2 = rr gaussian
+    rr :: MonadRandom m => (Seed -> a) -> m a
+    rr f = do
       s :: Int <- getRandom
       return (f s)
 
-initOnes :: (KnownNat n, KnownNat h1, KnownNat k) => Classifier n h1 k
+initOnes :: (KnownNat n, KnownNat h1, KnownNat k) => Parameters n h1 k
 initOnes =
-  Classifier
+  Parameters
     { w1 = matOnes,
       b1 = vecOnes,
       w2 = matOnes,
@@ -68,10 +68,10 @@ gaussian s = randomVector s Gaussian
 
 forward ::
   (KnownNat m, KnownNat n, KnownNat h1, KnownNat k) =>
-  Classifier n h1 k ->
+  Parameters n h1 k ->
   L m n ->
   L m k
-forward Classifier {..} xs =
+forward Parameters {..} xs =
   let a1 = dmmap relu $ xs <> w1 +~ b1
       af = dmmap relu $ a1 <> w2 +~ b2
    in af
@@ -83,6 +83,22 @@ forward Classifier {..} xs =
 -- | Matrix-vector sum broadcasting over the first index
 (+~) :: (KnownNat m, KnownNat n) => L m n -> R n -> L m n
 w +~ b = w + vecOnes `outer` b
+
+gradientDescentUpdate ::
+  (KnownNat n, KnownNat h1, KnownNat k) =>
+  -- | learning rate
+  Double ->
+  -- | parameters
+  Parameters n h1 k ->
+  -- | updated parameters
+  Parameters n h1 k
+gradientDescentUpdate lr Parameters {..} =
+  Parameters
+    { w1 = undefined,
+      b1 = undefined,
+      w2 = undefined,
+      b2 = undefined
+    }
 
 classifier ::
   (KnownNat m, KnownNat n, KnownNat p) =>

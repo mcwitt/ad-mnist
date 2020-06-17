@@ -1,10 +1,18 @@
 module Main where
 
-import MNIST
+import MNIST (load)
+import qualified MNIST
+import MNIST.Classifier
+import Numeric.LinearAlgebra.Static
 
 main :: IO ()
 main = do
-  load images (dataDir ++ "train-images") >>= print
-  load labels (dataDir ++ "train-labels") >>= print
+  images <- load MNIST.images (dataDir ++ "train-images")
+  labels <- load MNIST.labels (dataDir ++ "train-labels")
+  print images
+  print labels
+  let examples = fromImages images
+  case examples of
+    MkExamples fs -> print (size fs)
   where
     dataDir = "data/result/"

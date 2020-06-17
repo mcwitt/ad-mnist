@@ -10,7 +10,7 @@ cabal-version:      >= 1.10
 
 library
   exposed-modules:  MNIST
-                    MNIST.Classifier
+                    MNIST.Simple
   hs-source-dirs:   src
   build-depends:    base        >= 4.13 && < 4.14
                   , MonadRandom >= 0.5.1 && < 0.6
@@ -25,7 +25,10 @@ library
 executable ad-mnist
   main-is:          Main.hs
   hs-source-dirs:   app
-  build-depends:    base >= 4.13 && < 4.14, ad-mnist, bytestring >= 0.10.10 && < 0.11
+  build-depends:    base       >= 4.13 && < 4.14
+                  , ad-mnist
+                  , bytestring >= 0.10.10 && < 0.11
+                  , hmatrix    >= 0.20.0 && < 0.21
   default-language: Haskell2010
   ghc-options:      -Wall -Wincomplete-record-updates
 
@@ -33,8 +36,5 @@ test-suite ad-mnist-test
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
   hs-source-dirs: test
-  build-depends:  base       >= 4.13 && < 4.14
-                , ad-mnist
-                , hmatrix    >= 0.20.0 && < 0.21
-                , hspec
+  build-depends:  base >= 4.13 && < 4.14, ad-mnist, hmatrix >= 0.20.0 && < 0.21, hspec
   ghc-options:    -Wall -Wincomplete-record-updates
